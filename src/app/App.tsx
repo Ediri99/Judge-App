@@ -12,6 +12,8 @@ import { Input } from '../components/Input';
 import { useAuth } from './AuthProvider';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AuthProvider } from './AuthProvider';
+import { StallsListPage } from './stalls/StallsListPage';
+import { StallScorePage } from './stalls/StallScorePage';
 import '../styles/shell.css';
 
 function JudgeShell() {
@@ -156,35 +158,11 @@ function SignInPage() {
 }
 
 function ListPage() {
-  return (
-    <div className="page-shell">
-      <PhoneFrame>
-        <div className="signin-screen">
-          <h1>List</h1>
-          <p>Judge list placeholder for Phase 0.</p>
-          <Link to="/score/demo">
-            <Button variant="primary">Open score view</Button>
-          </Link>
-        </div>
-      </PhoneFrame>
-    </div>
-  );
+  return <StallsListPage />;
 }
 
 function ScorePage() {
-  return (
-    <div className="page-shell">
-      <PhoneFrame>
-        <div className="signin-screen">
-          <h1>Score</h1>
-          <p>Score view placeholder for Phase 0.</p>
-          <Link to="/list">
-            <Button>Back to list</Button>
-          </Link>
-        </div>
-      </PhoneFrame>
-    </div>
-  );
+  return <StallScorePage />;
 }
 
 function AppRoutes() {
