@@ -35,6 +35,7 @@ export interface StallCriterionDoc {
   weight: number;
   order: number;
   track: Track;
+  variant?: 'product' | 'process' | 'shared';
 }
 
 export interface StallDoc {

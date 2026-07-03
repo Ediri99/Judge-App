@@ -8,36 +8,46 @@ import { Card } from '../../components/Card';
 import { PhoneFrame } from '../../components/PhoneFrame';
 import { SliderRow } from '../../components/SliderRow';
 import { Toast } from '../../components/Toast';
-import type { ScoreDoc, StallCriterionDoc, StallDoc } from '../../types';
+import type { AwardCategoryDoc, ScoreDoc, UniversityDoc, UniversityEntryDoc, StallCriterionDoc } from '../../types';
+import { getEntryIcon, getEntryTypeLabel } from '../trackConfig';
 
 const EVENT_ID = 'demo-event';
-const TRACK = 'stalls';
+const TRACK = 'universities';
 
-export function StallScorePage() {
+export function UniversityScorePage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const [stall, setStall] = useState<StallDoc | null>(null);
+  const [entry, setEntry] = useState<UniversityEntryDoc | null>(null);
+  const [university, setUniversity] = useState<UniversityDoc | null>(null);
+  const [awardCategory, setAwardCategory] = useState<AwardCategoryDoc | null>(null);
   const [criteria, setCriteria] = useState<StallCriterionDoc[]>([]);
   const [score, setScore] = useState<ScoreDoc | null>(null);
   const [values, setValues] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
   const [toastOpen, setToastOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState<'draft' | 'submitted'>('draft');
 
   useEffect(() => {
     const load = async () => {
       if (!id || !user) return;
 
-      const stallSnapshot = await getDoc(doc(db, 'stalls', id));
-      if (!stallSnapshot.exists()) {
+      const entrySnapshot = await getDoc(doc(db, 'entries', id));
+      if (!entrySnapshot.exists()) {
         navigate('/list');
         return;
       }
-      const stallData = { id: stallSnapshot.id, ...(stallSnapshot.data() as StallDoc) };
-      setStall(stallData);
+      const entryData = { id: entrySnapshot.id, ...(entrySnapshot.data() as UniversityEntryDoc) };
+      setEntry(entryData);
 
+      const [uniSnapshot, categorySnapshot] = await Promise.all([
+        getDoc(doc(db, 'universities', entryData.universityId)),
+        getDoc(doc(db, 'awardCategories', entryData.awardCategoryId)),
+      ]);
+      if (uniSnapshot.exists()) setUniversity({ id: uniSnapshot.id, ...(uniSnapshot.data() as UniversityDoc) });
+      if (categorySnapshot.exists()) setAwardCategory({ id: categorySnapshot.id, ...(categorySnapshot.data() as AwardCategoryDoc) });
+
+      const type = entryData.type;
       const criteriaSnapshot = await getDocs(
         query(
           collection(db, 'stallCriteria'),
@@ -46,8 +56,17 @@ export function StallScorePage() {
           orderBy('order'),
         ),
       );
-      const criteriaDocs = criteriaSnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as StallCriterionDoc) }));
-      setCriteria(criteriaDocs);
+      const allCriteria = criteriaSnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as StallCriterionDoc) }));
+      const filteredCriteria = allCriteria.filter((criterion) => {
+        if (criterion.name === 'Innovation' || criterion.name === 'Market relevance') {
+          return type === 'product';
+        }
+        if (criterion.name === 'Process design' || criterion.name === 'Efficiency') {
+          return type === 'process';
+        }
+        return true;
+      });
+      setCriteria(filteredCriteria);
 
       const scoreId = `${user.uid}_${id}`;
       const scoreSnapshot = await getDoc(doc(db, 'scores', scoreId));
@@ -56,13 +75,11 @@ export function StallScorePage() {
         setScore(scoreData);
         setValues(scoreData.criteria);
         setNotes(scoreData.notes ?? '');
-        setSubmissionStatus(scoreData.status);
       } else {
-        const initialValues = criteriaDocs.reduce<Record<string, number>>((acc, criterion) => {
+        setValues(filteredCriteria.reduce<Record<string, number>>((acc, criterion) => {
           acc[criterion.id ?? criterion.name] = 0;
           return acc;
-        }, {});
-        setValues(initialValues);
+        }, {}));
       }
     };
 
@@ -85,7 +102,7 @@ export function StallScorePage() {
   };
 
   const handleSubmit = async () => {
-    if (!id || !user || !stall) return;
+    if (!id || !user || !entry) return;
     setSaving(true);
     const scoreId = `${user.uid}_${id}`;
     const nextScore: ScoreDoc = {
@@ -94,7 +111,7 @@ export function StallScorePage() {
       track: TRACK,
       judgeId: user.uid,
       itemId: id,
-      itemType: 'stall',
+      itemType: 'entry',
       criteria: values,
       total,
       notes,
@@ -104,31 +121,41 @@ export function StallScorePage() {
     };
     await setDoc(doc(db, 'scores', scoreId), nextScore);
     setScore(nextScore);
-    setSubmissionStatus('submitted');
     setToastOpen(true);
     setTimeout(() => setToastOpen(false), 2200);
     setSaving(false);
   };
 
-  if (!stall) {
+  if (!entry || !awardCategory) {
     return <div className="page-shell">Loading…</div>;
   }
+
+  const icon = getEntryIcon(entry.type);
+  const entryTypeLabel = getEntryTypeLabel(entry.type);
 
   return (
     <div className="judge-score-screen">
       <PhoneFrame>
         <div className="score-header">
           <div className="score-back">
-            <Button variant="ghost" onClick={() => navigate('/list/stalls')}>Back</Button>
+            <Button variant="ghost" onClick={() => navigate('/list')}>Back</Button>
           </div>
           <div className="score-title">
-            <div className="appbadge stalls">Stalls</div>
-            <h1>{stall.organization}</h1>
-            <div className="score-meta">{stall.stallNo} · {stall.hallId ?? 'Hall unknown'}</div>
+            <div className="appbadge uni">Universities</div>
+            <h1>{university?.name}</h1>
+            <div className="score-meta">{awardCategory.name}</div>
           </div>
         </div>
 
         <div className="score-scroll">
+          <Card className="hero-card">
+            <div className="hero-icon">{icon}</div>
+            <div className="hero-copy">
+              <div className="hero-type">{entryTypeLabel} entry</div>
+              <div className="hero-entry">{entry.name}</div>
+            </div>
+          </Card>
+
           {criteria.map((criterion) => (
             <Card key={criterion.id} className="crit-card">
               <div className="crit-top">

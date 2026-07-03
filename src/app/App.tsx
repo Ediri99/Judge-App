@@ -14,6 +14,8 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { AuthProvider } from './AuthProvider';
 import { StallsListPage } from './stalls/StallsListPage';
 import { StallScorePage } from './stalls/StallScorePage';
+import { UniversitiesListPage } from './universities/UniversitiesListPage';
+import { UniversityScorePage } from './universities/UniversityScorePage';
 import '../styles/shell.css';
 
 function JudgeShell() {
@@ -37,8 +39,11 @@ function JudgeShell() {
               <Link to="/signin">
                 <Button variant="primary">Open judge sign in</Button>
               </Link>
-              <Link to="/list">
-                <Button>Open judge list</Button>
+              <Link to="/list/stalls">
+                <Button>Open stalls list</Button>
+              </Link>
+              <Link to="/list/universities">
+                <Button>Open universities list</Button>
               </Link>
             </div>
           </Card>
@@ -116,7 +121,7 @@ function SignInPage() {
   const [error, setError] = useState<string | null>(null);
 
   if (user) {
-    return <Navigate to={role === 'admin' ? '/admin' : '/list'} replace />;
+    return <Navigate to={role === 'admin' ? '/admin' : '/list/stalls'} replace />;
   }
 
   async function handleSubmit() {
@@ -157,14 +162,6 @@ function SignInPage() {
   );
 }
 
-function ListPage() {
-  return <StallsListPage />;
-}
-
-function ScorePage() {
-  return <StallScorePage />;
-}
-
 function AppRoutes() {
   return (
     <Routes>
@@ -172,8 +169,11 @@ function AppRoutes() {
       <Route path="/judge" element={<JudgeShell />} />
       <Route path="/signin" element={<SignInPage />} />
       <Route element={<ProtectedRoute roles={['judge']} />}>
-        <Route path="/list" element={<ListPage />} />
-        <Route path="/score/:id" element={<ScorePage />} />
+        <Route path="/list" element={<Navigate to="/list/stalls" replace />} />
+        <Route path="/list/stalls" element={<StallsListPage />} />
+        <Route path="/list/universities" element={<UniversitiesListPage />} />
+        <Route path="/score/stalls/:id" element={<StallScorePage />} />
+        <Route path="/score/universities/:id" element={<UniversityScorePage />} />
       </Route>
       <Route element={<ProtectedRoute roles={['admin']} />}>
         <Route path="/admin" element={<AdminShell />} />

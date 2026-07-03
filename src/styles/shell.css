@@ -208,6 +208,57 @@ input:focus, select:focus, textarea:focus {
   border: 1px solid #C9E4D4;
 }
 
+.appbadge.uni {
+  background: #ECE3F6;
+  color: #6D4AA6;
+  border: 1px solid #DBC9EF;
+}
+
+.hero-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  margin: 14px 0 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ECE6DA, #DED5C4);
+}
+
+.hero-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hero-type {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+.hero-entry {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+}
+
 .event-label {
   margin-top: 6px;
   font-size: 13px;

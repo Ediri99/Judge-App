@@ -16,21 +16,25 @@ const stallCriteria: StallCriterionDoc[] = [
 ];
 
 const productCriteria: StallCriterionDoc[] = [
-  { name: 'Innovation', max: 10, weight: 1, order: 1, track: 'universities' },
-  { name: 'Market relevance', max: 10, weight: 1, order: 2, track: 'universities' },
-  { name: 'Presentation', max: 10, weight: 1, order: 3, track: 'universities' },
-  { name: 'Impact', max: 10, weight: 1, order: 4, track: 'universities' },
-  { name: 'Scalability', max: 10, weight: 1, order: 5, track: 'universities' },
-  { name: 'Commercial potential', max: 10, weight: 1, order: 6, track: 'universities' },
+  { name: 'Supply chain', max: 10, weight: 1, order: 1, track: 'universities', variant: 'product' },
+  { name: 'Production', max: 10, weight: 1, order: 2, track: 'universities', variant: 'product' },
+  { name: 'Viability', max: 10, weight: 1, order: 3, track: 'universities', variant: 'shared' },
+  { name: 'Packaging', max: 10, weight: 1, order: 4, track: 'universities', variant: 'shared' },
+  { name: 'Hygiene', max: 10, weight: 1, order: 5, track: 'universities', variant: 'shared' },
+  { name: 'Presentation', max: 10, weight: 1, order: 6, track: 'universities', variant: 'shared' },
+  { name: 'Knowledge', max: 10, weight: 1, order: 7, track: 'universities', variant: 'shared' },
+  { name: 'Marketability', max: 10, weight: 1, order: 8, track: 'universities', variant: 'shared' },
 ];
 
 const processCriteria: StallCriterionDoc[] = [
-  { name: 'Process design', max: 10, weight: 1, order: 1, track: 'universities' },
-  { name: 'Efficiency', max: 10, weight: 1, order: 2, track: 'universities' },
-  { name: 'Sustainability', max: 10, weight: 1, order: 3, track: 'universities' },
-  { name: 'Transferability', max: 10, weight: 1, order: 4, track: 'universities' },
-  { name: 'Impact', max: 10, weight: 1, order: 5, track: 'universities' },
-  { name: 'Quality control', max: 10, weight: 1, order: 6, track: 'universities' },
+  { name: 'Technology', max: 10, weight: 1, order: 1, track: 'universities', variant: 'process' },
+  { name: 'Finish', max: 10, weight: 1, order: 2, track: 'universities', variant: 'process' },
+  { name: 'Viability', max: 10, weight: 1, order: 3, track: 'universities', variant: 'shared' },
+  { name: 'Packaging', max: 10, weight: 1, order: 4, track: 'universities', variant: 'shared' },
+  { name: 'Hygiene', max: 10, weight: 1, order: 5, track: 'universities', variant: 'shared' },
+  { name: 'Presentation', max: 10, weight: 1, order: 6, track: 'universities', variant: 'shared' },
+  { name: 'Knowledge', max: 10, weight: 1, order: 7, track: 'universities', variant: 'shared' },
+  { name: 'Marketability', max: 10, weight: 1, order: 8, track: 'universities', variant: 'shared' },
 ];
 
 const halls: HallDoc[] = [

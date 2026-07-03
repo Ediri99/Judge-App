@@ -138,7 +138,7 @@ export function StallsListPage() {
               const hallName = stall.hallId ? hallMap[stall.hallId]?.name : 'No hall';
               const categoryName = stall.categoryId ? categoryMap[stall.categoryId]?.name : 'No category';
               return (
-                <Link to={`/score/${stall.id}`} key={stall.id} className={`stall-row ${isDone ? 'done' : 'todo'}`}>
+                <Link to={`/score/stalls/${stall.id}`} key={stall.id} className={`stall-row ${isDone ? 'done' : 'todo'}`}>
                   <div className="thumb">{stall.stallNo || stall.organization.charAt(0)}</div>
                   <div className="stall-info">
                     <div className="stall-name">{stall.organization}</div>
