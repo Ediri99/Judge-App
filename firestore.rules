@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isJudgeScoreDoc() {
+      return resource != null && resource.data.judgeId == request.auth.uid;
+    }
+
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && userId == request.auth.uid;
+      allow write: if isAdmin() || userId == request.auth.uid;
+    }
+
+    match /halls/{hallId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /stallCategories/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /stallCriteria/{criterionId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /stalls/{stallId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /universities/{universityId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /awardCategories/{awardId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /entries/{entryId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /scores/{scoreId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.judgeId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.judgeId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.judgeId == request.auth.uid;
+    }
+  }
+}

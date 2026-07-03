@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { PhoneFrame } from '../components/PhoneFrame';
@@ -7,6 +8,10 @@ import { Table } from '../components/Table';
 import { Pill } from '../components/Pill';
 import { Medal } from '../components/Medal';
 import { StatusBadge } from '../components/StatusBadge';
+import { Input } from '../components/Input';
+import { useAuth } from './AuthProvider';
+import { ProtectedRoute } from './ProtectedRoute';
+import { AuthProvider } from './AuthProvider';
 import '../styles/shell.css';
 
 function JudgeShell() {
@@ -101,14 +106,49 @@ function AdminShell() {
 }
 
 function SignInPage() {
+  const { signIn, signUp, user } = useAuth();
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [email, setEmail] = useState('judge@example.com');
+  const [password, setPassword] = useState('password123');
+  const [role, setRole] = useState<'judge' | 'admin'>('judge');
+  const [error, setError] = useState<string | null>(null);
+
+  if (user) {
+    return <Navigate to={role === 'admin' ? '/admin' : '/list'} replace />;
+  }
+
+  async function handleSubmit() {
+    setError(null);
+    try {
+      if (mode === 'signin') {
+        await signIn(email, password, role);
+      } else {
+        await signUp(email, password, role);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to authenticate');
+    }
+  }
+
   return (
     <div className="page-shell">
       <PhoneFrame>
         <div className="signin-screen">
           <div className="rosette">✦</div>
-          <h1>Sign in</h1>
-          <p>Judge sign-in placeholder for Phase 0.</p>
-          <Button variant="primary">Sign in</Button>
+          <h1>{mode === 'signin' ? 'Sign in' : 'Create account'}</h1>
+          <p>Phase 1 auth shell for judges and admins.</p>
+          <Input label="Email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+          <Input label="Password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
+          <label className="field">
+            <span className="field-label">Role</span>
+            <select value={role} onChange={(event) => setRole(event.target.value as 'judge' | 'admin')}>
+              <option value="judge">Judge</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          {error ? <p className="field-label">{error}</p> : null}
+          <Button variant="primary" onClick={handleSubmit}>{mode === 'signin' ? 'Sign in' : 'Create account'}</Button>
+          <Button onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>{mode === 'signin' ? 'Need an account?' : 'Already have one?'}</Button>
         </div>
       </PhoneFrame>
     </div>
@@ -147,16 +187,28 @@ function ScorePage() {
   );
 }
 
-export default function App() {
+function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/judge" replace />} />
       <Route path="/judge" element={<JudgeShell />} />
       <Route path="/signin" element={<SignInPage />} />
-      <Route path="/list" element={<ListPage />} />
-      <Route path="/score/:id" element={<ScorePage />} />
-      <Route path="/admin" element={<AdminShell />} />
+      <Route element={<ProtectedRoute roles={['judge']} />}>
+        <Route path="/list" element={<ListPage />} />
+        <Route path="/score/:id" element={<ScorePage />} />
+      </Route>
+      <Route element={<ProtectedRoute roles={['admin']} />}>
+        <Route path="/admin" element={<AdminShell />} />
+      </Route>
       <Route path="*" element={<Navigate to="/judge" replace />} />
     </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
