@@ -35,3 +35,13 @@
 ## Questions
 - Should the stall list sort prioritize hall order or stall number first when both are present?
 - Do we want a separate `published` event flag or active track control in the data model for future admin gating?
+
+## Phase 4
+- Added the offline engine with Firestore IndexedDB persistence and a stable-connection ping loop.
+- Gate Firestore network using `enableNetwork()` / `disableNetwork()` and only sync during stable 20-second windows.
+- Integrated local-first score writes for both stalls and university entries through `writeScoreDoc()`.
+- Requested storage persistence via `navigator.storage.persist()`.
+
+## Follow-ups
+- Verify the offline sync logic in a real network-flapping scenario to ensure it does not flush during unstable connectivity.
+- Add UI indicators for sync state and pending offline writes in a later phase.

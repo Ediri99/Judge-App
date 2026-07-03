@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { PhoneFrame } from '../components/PhoneFrame';
@@ -12,6 +12,7 @@ import { Input } from '../components/Input';
 import { useAuth } from './AuthProvider';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AuthProvider } from './AuthProvider';
+import { initOfflineEngine } from '../lib/offline';
 import { StallsListPage } from './stalls/StallsListPage';
 import { StallScorePage } from './stalls/StallScorePage';
 import { UniversitiesListPage } from './universities/UniversitiesListPage';
@@ -184,6 +185,26 @@ function AppRoutes() {
 }
 
 export default function App() {
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    let canceled = false;
+
+    void initOfflineEngine().then((fn) => {
+      if (canceled) {
+        if (fn) fn();
+        return;
+      }
+      cleanup = fn;
+    });
+
+    return () => {
+      canceled = true;
+      if (cleanup) {
+        cleanup();
+      }
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <AppRoutes />

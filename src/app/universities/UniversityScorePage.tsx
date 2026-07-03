@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { collection, doc, getDoc, getDocs, orderBy, query, setDoc, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { writeScoreDoc } from '../../lib/offline';
 import { useAuth } from '../AuthProvider';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
@@ -119,7 +120,7 @@ export function UniversityScorePage() {
       createdAt: score?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    await setDoc(doc(db, 'scores', scoreId), nextScore);
+    await writeScoreDoc(nextScore);
     setScore(nextScore);
     setToastOpen(true);
     setTimeout(() => setToastOpen(false), 2200);
