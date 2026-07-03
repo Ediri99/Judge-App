@@ -4,6 +4,8 @@ export interface EventDoc {
   id?: string;
   name: string;
   year: number;
+  activeTrack: Track;
+  enabledTracks: Track[];
   createdAt?: string;
 }
 

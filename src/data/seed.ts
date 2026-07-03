@@ -82,7 +82,13 @@ const entries: UniversityEntryDoc[] = [
 
 export async function seedDemoData() {
   const eventRef = doc(collection(db, 'events'), 'demo-event');
-  await setDoc(eventRef, { name: 'Annual food & craft expo 2026', year: 2026, createdAt: new Date().toISOString() });
+  await setDoc(eventRef, {
+    name: 'Annual food & craft expo 2026',
+    year: 2026,
+    activeTrack: 'stalls',
+    enabledTracks: ['stalls', 'universities'],
+    createdAt: new Date().toISOString(),
+  });
 
   for (const hall of halls) {
     const ref = doc(collection(db, 'halls'), `hall-${hall.name.toLowerCase().replace(/\s+/g, '-')}`);
