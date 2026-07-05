@@ -11,7 +11,9 @@
   "dependencies": {
     "@fontsource/fraunces": "^5.2.9",
     "@fontsource/inter": "^5.2.8",
+    "browser-image-compression": "^2.0.2",
     "firebase": "^12.15.0",
+    "idb": "^8.0.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.1.0"

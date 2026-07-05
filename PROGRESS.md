@@ -45,3 +45,9 @@
 ## Follow-ups
 - Verify the offline sync logic in a real network-flapping scenario to ensure it does not flush during unstable connectivity.
 - Add UI indicators for sync state and pending offline writes in a later phase.
+
+## Phase 5
+- Added a photo outbox backed by IndexedDB so judges can capture and queue photos locally for later upload.
+- Photos are compressed client-side before being queued and uploaded to Cloud Storage during stable connectivity windows.
+- The judge list and scoring screens now show sync-state badges for Saved on device, Queued, Uploading, Synced, and Retry.
+- Score writes remain local-first and continue to work even when photo uploads are pending.

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { writeScoreDoc } from '../../lib/offline';
+import { getPhotoOutboxStatus, queuePhotoForScore, writeScoreDoc } from '../../lib/offline';
 import { useAuth } from '../AuthProvider';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
@@ -28,6 +28,9 @@ export function UniversityScorePage() {
   const [notes, setNotes] = useState('');
   const [toastOpen, setToastOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [photoStatus, setPhotoStatus] = useState<'saved' | 'queued' | 'uploading' | 'synced' | 'retry'>('saved');
+  const [photoCount, setPhotoCount] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -76,6 +79,8 @@ export function UniversityScorePage() {
         setScore(scoreData);
         setValues(scoreData.criteria);
         setNotes(scoreData.notes ?? '');
+        setPhotoStatus(scoreData.syncStatus ?? 'saved');
+        setPhotoCount(scoreData.photos?.length ?? 0);
       } else {
         setValues(filteredCriteria.reduce<Record<string, number>>((acc, criterion) => {
           acc[criterion.id ?? criterion.name] = 0;
@@ -102,6 +107,29 @@ export function UniversityScorePage() {
     setValues((current) => ({ ...current, [criterionId]: value }));
   };
 
+  useEffect(() => {
+    if (!score?.id) return;
+    let active = true;
+    void getPhotoOutboxStatus(score.id).then((status) => {
+      if (active) {
+        setPhotoStatus(status);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [score?.id, saving, toastOpen]);
+
+  const handlePhotoPick = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !score?.id) return;
+    if (photoCount >= 2) return;
+    await queuePhotoForScore(score.id, file);
+    setPhotoCount((current) => current + 1);
+    setPhotoStatus('queued');
+    event.target.value = '';
+  };
+
   const handleSubmit = async () => {
     if (!id || !user || !entry) return;
     setSaving(true);
@@ -116,6 +144,7 @@ export function UniversityScorePage() {
       criteria: values,
       total,
       notes,
+      syncStatus: photoStatus === 'queued' ? 'queued' : 'saved',
       status: 'submitted',
       createdAt: score?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -166,6 +195,19 @@ export function UniversityScorePage() {
               <SliderRow label={criterion.name} value={values[criterion.id ?? criterion.name] ?? 0} onChange={(value) => handleChange(criterion.id ?? criterion.name, value)} />
             </Card>
           ))}
+
+          <Card className="photo-card">
+            <div className="photo-row">
+              <div>
+                <div className="field-label">Photos</div>
+                <div className="photo-copy">Capture up to 2 photos for this entry. They upload independently of score sync.</div>
+              </div>
+              <Button variant="ghost" onClick={() => fileInputRef.current?.click()} disabled={photoCount >= 2}>Add photo</Button>
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoPick} hidden />
+            <div className={`status-badge status-${photoStatus}`}>{photoStatus === 'saved' ? 'Saved on device' : photoStatus === 'queued' ? 'Queued' : photoStatus === 'uploading' ? 'Uploading' : photoStatus === 'synced' ? 'Synced' : 'Retry'}</div>
+            <div className="photo-hint">{photoCount}/2 photos captured</div>
+          </Card>
 
           <div className="comment">
             <label className="field-label" htmlFor="notes">Notes</label>

@@ -72,6 +72,17 @@ export interface UniversityEntryDoc {
   imageUrl?: string | null;
 }
 
+export interface ScorePhotoDoc {
+  id: string;
+  scoreId: string;
+  storagePath: string;
+  mimeType: string;
+  blob: Blob;
+  status: 'queued' | 'uploading' | 'synced' | 'retry';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface ScoreDoc {
   id?: string;
   eventId: string;
@@ -83,6 +94,7 @@ export interface ScoreDoc {
   total: number;
   notes?: string;
   photos?: Array<{ url: string; storagePath: string; w?: number; h?: number }>;
+  syncStatus?: 'saved' | 'queued' | 'uploading' | 'synced' | 'retry';
   status: 'draft' | 'submitted';
   deleted?: boolean;
   createdAt?: string;

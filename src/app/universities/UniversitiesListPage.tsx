@@ -134,6 +134,7 @@ export function UniversitiesListPage() {
               const isDone = score?.status === 'submitted';
               const categoryType = entry.awardCategory?.type;
               const icon = getEntryIcon(categoryType ?? 'product');
+              const syncLabel = score?.syncStatus === 'queued' ? 'Queued' : score?.syncStatus === 'uploading' ? 'Uploading' : score?.syncStatus === 'synced' ? 'Synced' : score?.syncStatus === 'retry' ? 'Retry' : 'Saved';
               return (
                 <Link to={`/score/${entry.id}`} key={entry.id} className={`stall-row ${isDone ? 'done' : 'todo'}`}>
                   <div className="thumb">{icon}</div>
@@ -141,9 +142,12 @@ export function UniversitiesListPage() {
                     <div className="stall-name">{entry.university?.name}</div>
                     <div className="stall-meta">{entry.name} · {entry.awardCategory?.name}</div>
                   </div>
-                  <div className={`state ${isDone ? 'done' : 'todo'}`}>
-                    <span className="dot" />
-                    {isDone ? <span className="score-value">{score?.total}</span> : 'Pending'}
+                  <div className="list-side">
+                    <div className={`state ${isDone ? 'done' : 'todo'}`}>
+                      <span className="dot" />
+                      {isDone ? <span className="score-value">{score?.total}</span> : 'Pending'}
+                    </div>
+                    <div className={`status-badge status-${score?.syncStatus ?? 'saved'}`}>{syncLabel}</div>
                   </div>
                 </Link>
               );

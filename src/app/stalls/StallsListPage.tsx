@@ -137,6 +137,7 @@ export function StallsListPage() {
               const isDone = score?.status === 'submitted';
               const hallName = stall.hallId ? hallMap[stall.hallId]?.name : 'No hall';
               const categoryName = stall.categoryId ? categoryMap[stall.categoryId]?.name : 'No category';
+              const syncLabel = score?.syncStatus === 'queued' ? 'Queued' : score?.syncStatus === 'uploading' ? 'Uploading' : score?.syncStatus === 'synced' ? 'Synced' : score?.syncStatus === 'retry' ? 'Retry' : 'Saved';
               return (
                 <Link to={`/score/stalls/${stall.id}`} key={stall.id} className={`stall-row ${isDone ? 'done' : 'todo'}`}>
                   <div className="thumb">{stall.stallNo || stall.organization.charAt(0)}</div>
@@ -144,9 +145,12 @@ export function StallsListPage() {
                     <div className="stall-name">{stall.organization}</div>
                     <div className="stall-meta">{stall.stallNo ? `${stall.stallNo} · ` : ''}{hallName} · {categoryName}</div>
                   </div>
-                  <div className={`state ${isDone ? 'done' : 'todo'}`}>
-                    <span className="dot" />
-                    {isDone ? <span className="score-value">{score?.total}</span> : 'Pending'}
+                  <div className="list-side">
+                    <div className={`state ${isDone ? 'done' : 'todo'}`}>
+                      <span className="dot" />
+                      {isDone ? <span className="score-value">{score?.total}</span> : 'Pending'}
+                    </div>
+                    <div className={`status-badge status-${score?.syncStatus ?? 'saved'}`}>{syncLabel}</div>
                   </div>
                 </Link>
               );
