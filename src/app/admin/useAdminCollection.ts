@@ -10,16 +10,25 @@ export interface WithId {
 export function useAdminCollection<T extends WithId>(collectionName: string, orderByField?: string) {
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const constraints: QueryConstraint[] = [where('eventId', '==', EVENT_ID)];
     if (orderByField) constraints.push(orderBy(orderByField));
     const q = query(collection(db, collectionName), ...constraints);
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setItems(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as T) })));
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setItems(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as T) })));
+        setError(null);
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      },
+    );
 
     return () => unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -37,5 +46,5 @@ export function useAdminCollection<T extends WithId>(collectionName: string, ord
     await deleteDoc(doc(db, collectionName, id));
   }
 
-  return { items, loading, add, update, remove };
+  return { items, loading, error, add, update, remove };
 }

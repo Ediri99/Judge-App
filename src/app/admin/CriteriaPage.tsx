@@ -3,6 +3,7 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Select } from '../../components/Select';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { useAdminCollection } from './useAdminCollection';
 import type { StallCriterionDoc, Track } from '../../types';
 
@@ -11,12 +12,14 @@ type Variant = 'product' | 'process' | 'shared';
 function CriteriaGroup({
   title,
   rows,
+  loading,
   onMove,
   onChangeField,
   onRemove,
 }: {
   title: string;
   rows: StallCriterionDoc[];
+  loading: boolean;
   onMove: (row: StallCriterionDoc, direction: -1 | 1) => void;
   onChangeField: (row: StallCriterionDoc, field: 'name' | 'max' | 'weight', value: string) => void;
   onRemove: (row: StallCriterionDoc) => void;
@@ -37,8 +40,8 @@ function CriteriaGroup({
             <tr key={row.id}>
               <td>
                 <div className="shell-actions">
-                  <Button variant="ghost" disabled={index === 0} onClick={() => onMove(row, -1)}>↑</Button>
-                  <Button variant="ghost" disabled={index === rows.length - 1} onClick={() => onMove(row, 1)}>↓</Button>
+                  <Button variant="ghost" aria-label={`Move ${row.name} up`} disabled={index === 0} onClick={() => onMove(row, -1)}>↑</Button>
+                  <Button variant="ghost" aria-label={`Move ${row.name} down`} disabled={index === rows.length - 1} onClick={() => onMove(row, 1)}>↓</Button>
                 </div>
               </td>
               <td>
@@ -53,7 +56,11 @@ function CriteriaGroup({
               <td><Button variant="ghost" onClick={() => onRemove(row)}>Remove</Button></td>
             </tr>
           ))}
-          {rows.length === 0 ? <tr><td colSpan={5}>No criteria yet.</td></tr> : null}
+          {loading ? (
+            <tr><td colSpan={5}>Loading criteria…</td></tr>
+          ) : rows.length === 0 ? (
+            <tr><td colSpan={5}>No criteria yet.</td></tr>
+          ) : null}
         </tbody>
       </table>
     </Card>
@@ -127,11 +134,14 @@ export function CriteriaPage({ track }: { track: Track }) {
         </div>
       </div>
 
+      {criteria.error ? <ErrorBanner message={`Couldn't load criteria: ${criteria.error}`} /> : null}
+
       {groups.map((group) => (
         <CriteriaGroup
           key={group.key}
           title={group.title}
           rows={group.rows}
+          loading={criteria.loading}
           onMove={move}
           onChangeField={changeField}
           onRemove={remove}

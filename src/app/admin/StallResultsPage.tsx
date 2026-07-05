@@ -5,6 +5,7 @@ import { Select } from '../../components/Select';
 import { Medal } from '../../components/Medal';
 import { Pill } from '../../components/Pill';
 import { MetricCard } from '../../components/MetricCard';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { useAdminCollection } from './useAdminCollection';
 import { useScores } from './useScores';
 import { aggregateItemScores, groupScoresByItem, rankByAverage } from './aggregation';
@@ -23,7 +24,7 @@ export function StallResultsPage() {
   const categories = useAdminCollection<StallCategoryDoc>('stallCategories', 'order');
   const criteria = useAdminCollection<StallCriterionDoc>('stallCriteria', 'order');
   const judges = useAdminCollection<JudgeDoc>('judges');
-  const { scores } = useScores('stalls');
+  const { scores, error: scoresError } = useScores('stalls');
   const [event, setEvent] = useState<EventDoc | null>(null);
 
   const [hallFilter, setHallFilter] = useState('all');
@@ -140,6 +141,9 @@ export function StallResultsPage() {
         </div>
       </div>
 
+      {scoresError ? <ErrorBanner message={`Couldn't load scores: ${scoresError}`} /> : null}
+      {stalls.error ? <ErrorBanner message={`Couldn't load stalls: ${stalls.error}`} /> : null}
+
       <div className="metrics-row">
         <MetricCard label="Stalls" value={stalls.items.length} />
         <MetricCard label="Judges" value={totalJudges} />
@@ -168,7 +172,9 @@ export function StallResultsPage() {
           </Select>
         </div>
 
-        {ranked.length === 0 ? (
+        {stalls.loading ? (
+          <p>Loading results…</p>
+        ) : ranked.length === 0 ? (
           <p>No stalls match these filters.</p>
         ) : (
           <table className="data-table">

@@ -6,6 +6,7 @@ import { Select } from '../../components/Select';
 import { Medal } from '../../components/Medal';
 import { Pill } from '../../components/Pill';
 import { MetricCard } from '../../components/MetricCard';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { db } from '../../lib/firebase';
 import { useAdminCollection } from './useAdminCollection';
 import { useScores } from './useScores';
@@ -22,7 +23,7 @@ export function UniversityResultsPage() {
   const entries = useAdminCollection<UniversityEntryDoc>('entries');
   const criteria = useAdminCollection<StallCriterionDoc>('stallCriteria', 'order');
   const judges = useAdminCollection<JudgeDoc>('judges');
-  const { scores } = useScores('universities');
+  const { scores, error: scoresError } = useScores('universities');
   const [event, setEvent] = useState<EventDoc | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
 
@@ -135,6 +136,9 @@ export function UniversityResultsPage() {
         </div>
       </div>
 
+      {scoresError ? <ErrorBanner message={`Couldn't load scores: ${scoresError}`} /> : null}
+      {entries.error ? <ErrorBanner message={`Couldn't load entries: ${entries.error}`} /> : null}
+
       <div className="metrics-row">
         <MetricCard label="Universities" value={universities.items.length} />
         <MetricCard label="Award categories" value={awardCategories.items.length} />
@@ -149,7 +153,9 @@ export function UniversityResultsPage() {
         </Select>
       </div>
 
-      {categoryLeaderboards.length === 0 ? (
+      {awardCategories.loading || entries.loading ? (
+        <Card className="shell-card">Loading results…</Card>
+      ) : categoryLeaderboards.length === 0 ? (
         <Card className="shell-card">No award categories match these filters.</Card>
       ) : (
         categoryLeaderboards.map(({ category, ranked }) => (

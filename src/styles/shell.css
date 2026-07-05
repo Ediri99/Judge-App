@@ -1,5 +1,6 @@
 .judge-shell, .page-shell {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -143,6 +144,16 @@ input:focus, select:focus, textarea:focus {
   color: var(--warn);
 }
 
+.error-banner {
+  background: var(--red-soft);
+  color: var(--red);
+  border: 1px solid rgba(192, 73, 47, 0.24);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -191,6 +202,7 @@ input:focus, select:focus, textarea:focus {
 .judge-list-screen,
 .judge-score-screen {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .greet-row {
@@ -501,7 +513,7 @@ input:focus, select:focus, textarea:focus {
   position: sticky;
   bottom: 0;
   background: linear-gradient(to top, var(--surface) 88%, rgba(244, 240, 232, 0));
-  padding: 18px 20px 24px;
+  padding: 18px 20px max(24px, env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 16px;
@@ -590,6 +602,7 @@ input:focus, select:focus, textarea:focus {
 
 .admin-shell {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
 }
 
@@ -685,14 +698,65 @@ input:focus, select:focus, textarea:focus {
   margin-bottom: 8px;
 }
 
+.admin-drawer-toggle {
+  display: none;
+}
+
+.admin-drawer-overlay {
+  display: none;
+}
+
 @media (max-width: 760px) {
   .admin-shell {
-    flex-direction: column;
+    display: block;
+  }
+
+  .admin-drawer-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    background: var(--rail);
+    color: var(--ink);
+    font-weight: 600;
+    padding: 14px 16px;
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+
+  .admin-drawer-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 37, 50, 0.35);
+    z-index: 39;
   }
 
   .admin-rail {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--line);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 40;
+    width: min(84vw, 320px);
+    max-width: 320px;
+    overflow-y: auto;
+    border-right: 1px solid var(--line);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    padding-top: max(22px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .admin-rail.open {
+    transform: translateX(0);
+  }
+
+  .admin-main {
+    padding: 20px 16px;
   }
 }

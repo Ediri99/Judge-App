@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { useAdminCollection } from './useAdminCollection';
 import type { UniversityDoc } from '../../types';
 
@@ -46,6 +47,8 @@ export function UniversitiesPage() {
         </div>
       </div>
 
+      {universities.error ? <ErrorBanner message={`Couldn't load universities: ${universities.error}`} /> : null}
+
       <Card className="shell-card">
         <table className="data-table">
           <thead><tr><th>Name</th><th /></tr></thead>
@@ -76,7 +79,11 @@ export function UniversitiesPage() {
                 </td>
               </tr>
             ))}
-            {universities.items.length === 0 ? <tr><td colSpan={2}>No universities yet.</td></tr> : null}
+            {universities.loading ? (
+              <tr><td colSpan={2}>Loading universities…</td></tr>
+            ) : universities.items.length === 0 ? (
+              <tr><td colSpan={2}>No universities yet.</td></tr>
+            ) : null}
           </tbody>
         </table>
       </Card>

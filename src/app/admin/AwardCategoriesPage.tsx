@@ -3,6 +3,7 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Select } from '../../components/Select';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { useAdminCollection } from './useAdminCollection';
 import type { AwardCategoryDoc } from '../../types';
 
@@ -49,6 +50,8 @@ export function AwardCategoriesPage() {
         </div>
       </div>
 
+      {awardCategories.error ? <ErrorBanner message={`Couldn't load award categories: ${awardCategories.error}`} /> : null}
+
       <Card className="shell-card">
         <table className="data-table">
           <thead><tr><th /><th>Name</th><th>Type</th><th /></tr></thead>
@@ -57,13 +60,13 @@ export function AwardCategoriesPage() {
               <tr key={category.id}>
                 <td>
                   <div className="shell-actions">
-                    <Button variant="ghost" disabled={index === 0} onClick={() => move(category, -1)}>↑</Button>
-                    <Button variant="ghost" disabled={index === sorted.length - 1} onClick={() => move(category, 1)}>↓</Button>
+                    <Button variant="ghost" aria-label={`Move ${category.name} up`} disabled={index === 0} onClick={() => move(category, -1)}>↑</Button>
+                    <Button variant="ghost" aria-label={`Move ${category.name} down`} disabled={index === sorted.length - 1} onClick={() => move(category, 1)}>↓</Button>
                   </div>
                 </td>
                 <td>{category.name}</td>
                 <td>
-                  <Select value={category.type} onChange={(event) => changeType(category, event.target.value as 'product' | 'process')}>
+                  <Select aria-label={`Type for ${category.name}`} value={category.type} onChange={(event) => changeType(category, event.target.value as 'product' | 'process')}>
                     <option value="product">Product</option>
                     <option value="process">Process</option>
                   </Select>
@@ -71,7 +74,11 @@ export function AwardCategoriesPage() {
                 <td><Button variant="ghost" onClick={() => remove(category)}>Remove</Button></td>
               </tr>
             ))}
-            {sorted.length === 0 ? <tr><td colSpan={4}>No award categories yet.</td></tr> : null}
+            {awardCategories.loading ? (
+              <tr><td colSpan={4}>Loading award categories…</td></tr>
+            ) : sorted.length === 0 ? (
+              <tr><td colSpan={4}>No award categories yet.</td></tr>
+            ) : null}
           </tbody>
         </table>
       </Card>

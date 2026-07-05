@@ -4,6 +4,7 @@ import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firesto
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { db, getSecondaryAuth } from '../../lib/firebase';
 import { useAdminCollection } from './useAdminCollection';
 import { EVENT_ID } from './constants';
@@ -95,6 +96,8 @@ export function JudgesPage() {
         </div>
       </div>
 
+      {judges.error ? <ErrorBanner message={`Couldn't load judges: ${judges.error}`} /> : null}
+
       <Card className="shell-card">
         <table className="data-table">
           <thead>
@@ -112,7 +115,11 @@ export function JudgesPage() {
                 </tr>
               );
             })}
-            {judges.items.length === 0 ? <tr><td colSpan={4}>No judges yet.</td></tr> : null}
+            {judges.loading ? (
+              <tr><td colSpan={4}>Loading judges…</td></tr>
+            ) : judges.items.length === 0 ? (
+              <tr><td colSpan={4}>No judges yet.</td></tr>
+            ) : null}
           </tbody>
         </table>
       </Card>

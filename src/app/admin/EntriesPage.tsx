@@ -4,6 +4,7 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Select } from '../../components/Select';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { storage } from '../../lib/firebase';
 import { useAdminCollection } from './useAdminCollection';
 import { EVENT_ID } from './constants';
@@ -87,6 +88,8 @@ export function EntriesPage() {
         </div>
       </div>
 
+      {entries.error ? <ErrorBanner message={`Couldn't load entries: ${entries.error}`} /> : null}
+
       <Card className="shell-card">
         <table className="data-table">
           <thead><tr><th>University</th><th>Award category</th><th>Type</th><th>Entry name</th><th /></tr></thead>
@@ -105,7 +108,11 @@ export function EntriesPage() {
                 </td>
               </tr>
             ))}
-            {entries.items.length === 0 ? <tr><td colSpan={5}>No entries yet.</td></tr> : null}
+            {entries.loading ? (
+              <tr><td colSpan={5}>Loading entries…</td></tr>
+            ) : entries.items.length === 0 ? (
+              <tr><td colSpan={5}>No entries yet.</td></tr>
+            ) : null}
           </tbody>
         </table>
       </Card>

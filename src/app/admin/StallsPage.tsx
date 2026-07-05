@@ -4,6 +4,7 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Select } from '../../components/Select';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { storage } from '../../lib/firebase';
 import { useAdminCollection } from './useAdminCollection';
 import { EVENT_ID } from './constants';
@@ -87,6 +88,8 @@ export function StallsPage() {
         </Select>
       </div>
 
+      {stalls.error ? <ErrorBanner message={`Couldn't load stalls: ${stalls.error}`} /> : null}
+
       <div className="metrics-row" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
         {visibleStalls.map((stall) => (
           <Card key={stall.id} className="shell-card">
@@ -101,7 +104,11 @@ export function StallsPage() {
             </div>
           </Card>
         ))}
-        {visibleStalls.length === 0 ? <Card className="shell-card">No stalls match these filters.</Card> : null}
+        {stalls.loading ? (
+          <Card className="shell-card">Loading stalls…</Card>
+        ) : visibleStalls.length === 0 ? (
+          <Card className="shell-card">No stalls match these filters.</Card>
+        ) : null}
       </div>
 
       <Card className="shell-card" style={{ marginTop: 16 }}>

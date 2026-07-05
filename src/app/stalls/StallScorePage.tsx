@@ -163,9 +163,9 @@ export function StallScorePage() {
             <Card key={criterion.id} className="crit-card">
               <div className="crit-top">
                 <div className="q">{criterion.name}</div>
-                <div className="v">{values[criterion.id ?? criterion.name] ?? 0}<small>/10</small></div>
+                <div className="v">{values[criterion.id ?? criterion.name] ?? 0}<small>/{criterion.max}</small></div>
               </div>
-              <SliderRow label={criterion.name} value={values[criterion.id ?? criterion.name] ?? 0} onChange={(value) => handleChange(criterion.id ?? criterion.name, value)} />
+              <SliderRow label={criterion.name} value={values[criterion.id ?? criterion.name] ?? 0} max={criterion.max} onChange={(value) => handleChange(criterion.id ?? criterion.name, value)} />
             </Card>
           ))}
 

@@ -7,15 +7,24 @@ import type { ScoreDoc, Track } from '../../types';
 export function useScores(track: Track) {
   const [scores, setScores] = useState<ScoreDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'scores'), where('eventId', '==', EVENT_ID), where('track', '==', track));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setScores(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as ScoreDoc) })));
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setScores(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as ScoreDoc) })));
+        setError(null);
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      },
+    );
     return () => unsubscribe();
   }, [track]);
 
-  return { scores, loading };
+  return { scores, loading, error };
 }

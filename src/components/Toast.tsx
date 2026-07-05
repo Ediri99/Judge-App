@@ -6,5 +6,9 @@ type Props = {
 };
 
 export function Toast({ open, children }: Props) {
-  return <div className={`toast ${open ? 'show' : ''}`}>{children}</div>;
+  return (
+    <div className={`toast ${open ? 'show' : ''}`} role="status" aria-live="polite">
+      {open ? children : null}
+    </div>
+  );
 }

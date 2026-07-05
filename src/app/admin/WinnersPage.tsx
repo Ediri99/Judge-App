@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Card } from '../../components/Card';
 import { Medal } from '../../components/Medal';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { useAdminCollection } from './useAdminCollection';
 import { useScores } from './useScores';
 import { aggregateItemScores, groupScoresByItem, rankByAverage } from './aggregation';
@@ -11,7 +12,7 @@ export function WinnersPage() {
   const universities = useAdminCollection<UniversityDoc>('universities', 'name');
   const awardCategories = useAdminCollection<AwardCategoryDoc>('awardCategories', 'order');
   const entries = useAdminCollection<UniversityEntryDoc>('entries');
-  const { scores } = useScores('universities');
+  const { scores, error: scoresError } = useScores('universities');
 
   const universityMap = useMemo(() => Object.fromEntries(universities.items.map((u) => [u.id, u.name])), [universities.items]);
   const scoresByEntry = useMemo(() => groupScoresByItem(scores), [scores]);
@@ -36,6 +37,8 @@ export function WinnersPage() {
         </div>
       </div>
 
+      {scoresError ? <ErrorBanner message={`Couldn't load scores: ${scoresError}`} /> : null}
+
       <div className="metrics-row" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
         {winners.map(({ category, winner }) => (
           <Card key={category.id} className="shell-card">
@@ -57,7 +60,11 @@ export function WinnersPage() {
             )}
           </Card>
         ))}
-        {winners.length === 0 ? <Card className="shell-card">No award categories configured yet.</Card> : null}
+        {awardCategories.loading ? (
+          <Card className="shell-card">Loading winners…</Card>
+        ) : winners.length === 0 ? (
+          <Card className="shell-card">No award categories configured yet.</Card>
+        ) : null}
       </div>
     </div>
   );

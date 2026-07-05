@@ -6,6 +6,7 @@ import { useAuth } from '../AuthProvider';
 import { Card } from '../../components/Card';
 import { PhoneFrame } from '../../components/PhoneFrame';
 import { Select } from '../../components/Select';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import type { EventDoc, HallDoc, ScoreDoc, StallCategoryDoc, StallDoc } from '../../types';
 
 const EVENT_ID = 'demo-event';
@@ -26,38 +27,44 @@ export function StallsListPage() {
   const [selectedHall, setSelectedHall] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
       if (!user) return;
       setLoading(true);
+      setError(null);
 
-      const [eventSnapshot, stallSnapshot, hallSnapshot, categorySnapshot, scoreSnapshot] = await Promise.all([
-        getDoc(doc(db, 'events', EVENT_ID)),
-        getDocs(query(collection(db, 'stalls'), where('eventId', '==', EVENT_ID), orderBy('stallNo'))),
-        getDocs(query(collection(db, 'halls'), where('eventId', '==', EVENT_ID), orderBy('order'))),
-        getDocs(query(collection(db, 'stallCategories'), where('eventId', '==', EVENT_ID), orderBy('order'))),
-        getDocs(query(collection(db, 'scores'), where('eventId', '==', EVENT_ID), where('judgeId', '==', user.uid), where('track', '==', TRACK))),
-      ]);
+      try {
+        const [eventSnapshot, stallSnapshot, hallSnapshot, categorySnapshot, scoreSnapshot] = await Promise.all([
+          getDoc(doc(db, 'events', EVENT_ID)),
+          getDocs(query(collection(db, 'stalls'), where('eventId', '==', EVENT_ID), orderBy('stallNo'))),
+          getDocs(query(collection(db, 'halls'), where('eventId', '==', EVENT_ID), orderBy('order'))),
+          getDocs(query(collection(db, 'stallCategories'), where('eventId', '==', EVENT_ID), orderBy('order'))),
+          getDocs(query(collection(db, 'scores'), where('eventId', '==', EVENT_ID), where('judgeId', '==', user.uid), where('track', '==', TRACK))),
+        ]);
 
-      if (eventSnapshot.exists()) {
-        setEvent({ id: eventSnapshot.id, ...(eventSnapshot.data() as EventDoc) });
+        if (eventSnapshot.exists()) {
+          setEvent({ id: eventSnapshot.id, ...(eventSnapshot.data() as EventDoc) });
+        }
+
+        setStalls(stallSnapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as StallDoc) })));
+        setHalls(hallSnapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as HallDoc) })));
+        setCategories(categorySnapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as StallCategoryDoc) })));
+        setScores(
+          scoreSnapshot.docs.reduce<Record<string, ScoreDoc>>((acc, doc) => {
+            const score = { id: doc.id, ...(doc.data() as ScoreDoc) };
+            if (score.itemId) {
+              acc[score.itemId] = score;
+            }
+            return acc;
+          }, {}),
+        );
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unable to load stalls');
+      } finally {
+        setLoading(false);
       }
-
-      setStalls(stallSnapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as StallDoc) })));
-      setHalls(hallSnapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as HallDoc) })));
-      setCategories(categorySnapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as StallCategoryDoc) })));
-      setScores(
-        scoreSnapshot.docs.reduce<Record<string, ScoreDoc>>((acc, doc) => {
-          const score = { id: doc.id, ...(doc.data() as ScoreDoc) };
-          if (score.itemId) {
-            acc[score.itemId] = score;
-          }
-          return acc;
-        }, {}),
-      );
-
-      setLoading(false);
     };
 
     void load();
@@ -125,7 +132,9 @@ export function StallsListPage() {
         </div>
 
         <div className="stall-list-scroll">
-          {!event || loading ? (
+          {error ? (
+            <ErrorBanner message={`Couldn't load stalls: ${error}`} />
+          ) : !event || loading ? (
             <Card className="list-loading">Loading stalls…</Card>
           ) : !event.enabledTracks.includes(TRACK) ? (
             <Card className="list-empty">Stalls track is not enabled for this event.</Card>

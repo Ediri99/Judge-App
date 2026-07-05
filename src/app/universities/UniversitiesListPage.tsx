@@ -6,6 +6,7 @@ import { useAuth } from '../AuthProvider';
 import { Card } from '../../components/Card';
 import { PhoneFrame } from '../../components/PhoneFrame';
 import { Select } from '../../components/Select';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import type { AwardCategoryDoc, ScoreDoc, UniversityDoc, UniversityEntryDoc } from '../../types';
 import type { EventDoc } from '../../types';
 import { getEntryIcon } from '../trackConfig';
@@ -28,38 +29,44 @@ export function UniversitiesListPage() {
   const [selectedAwardCategory, setSelectedAwardCategory] = useState<string>('all');
   const [selectedUniversity, setSelectedUniversity] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
       if (!user) return;
       setLoading(true);
+      setError(null);
 
-      const [eventSnapshot, entriesSnapshot, awardCategorySnapshot, universitySnapshot, scoreSnapshot] = await Promise.all([
-        getDoc(doc(db, 'events', EVENT_ID)),
-        getDocs(query(collection(db, 'entries'), where('eventId', '==', EVENT_ID), orderBy('awardCategoryId'))),
-        getDocs(query(collection(db, 'awardCategories'), where('eventId', '==', EVENT_ID), orderBy('order'))),
-        getDocs(query(collection(db, 'universities'), where('eventId', '==', EVENT_ID), orderBy('name'))),
-        getDocs(query(collection(db, 'scores'), where('eventId', '==', EVENT_ID), where('judgeId', '==', user.uid), where('track', '==', TRACK))),
-      ]);
+      try {
+        const [eventSnapshot, entriesSnapshot, awardCategorySnapshot, universitySnapshot, scoreSnapshot] = await Promise.all([
+          getDoc(doc(db, 'events', EVENT_ID)),
+          getDocs(query(collection(db, 'entries'), where('eventId', '==', EVENT_ID), orderBy('awardCategoryId'))),
+          getDocs(query(collection(db, 'awardCategories'), where('eventId', '==', EVENT_ID), orderBy('order'))),
+          getDocs(query(collection(db, 'universities'), where('eventId', '==', EVENT_ID), orderBy('name'))),
+          getDocs(query(collection(db, 'scores'), where('eventId', '==', EVENT_ID), where('judgeId', '==', user.uid), where('track', '==', TRACK))),
+        ]);
 
-      if (eventSnapshot.exists()) {
-        setEvent({ id: eventSnapshot.id, ...(eventSnapshot.data() as EventDoc) });
+        if (eventSnapshot.exists()) {
+          setEvent({ id: eventSnapshot.id, ...(eventSnapshot.data() as EventDoc) });
+        }
+
+        setEntries(entriesSnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as UniversityEntryDoc) })));
+        setAwardCategories(awardCategorySnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as AwardCategoryDoc) })));
+        setUniversities(universitySnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as UniversityDoc) })));
+        setScores(
+          scoreSnapshot.docs.reduce<Record<string, ScoreDoc>>((acc, docSnap) => {
+            const score = { id: docSnap.id, ...(docSnap.data() as ScoreDoc) };
+            if (score.itemId) {
+              acc[score.itemId] = score;
+            }
+            return acc;
+          }, {}),
+        );
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unable to load entries');
+      } finally {
+        setLoading(false);
       }
-
-      setEntries(entriesSnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as UniversityEntryDoc) })));
-      setAwardCategories(awardCategorySnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as AwardCategoryDoc) })));
-      setUniversities(universitySnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as UniversityDoc) })));
-      setScores(
-        scoreSnapshot.docs.reduce<Record<string, ScoreDoc>>((acc, docSnap) => {
-          const score = { id: docSnap.id, ...(docSnap.data() as ScoreDoc) };
-          if (score.itemId) {
-            acc[score.itemId] = score;
-          }
-          return acc;
-        }, {}),
-      );
-
-      setLoading(false);
     };
 
     void load();
@@ -122,7 +129,9 @@ export function UniversitiesListPage() {
         </div>
 
         <div className="stall-list-scroll">
-          {!event || loading ? (
+          {error ? (
+            <ErrorBanner message={`Couldn't load entries: ${error}`} />
+          ) : !event || loading ? (
             <Card className="list-loading">Loading entries…</Card>
           ) : !event.enabledTracks.includes(TRACK) ? (
             <Card className="list-empty">Universities track is not enabled for this event.</Card>
@@ -136,7 +145,7 @@ export function UniversitiesListPage() {
               const icon = getEntryIcon(categoryType ?? 'product');
               const syncLabel = score?.syncStatus === 'queued' ? 'Queued' : score?.syncStatus === 'uploading' ? 'Uploading' : score?.syncStatus === 'synced' ? 'Synced' : score?.syncStatus === 'retry' ? 'Retry' : 'Saved';
               return (
-                <Link to={`/score/${entry.id}`} key={entry.id} className={`stall-row ${isDone ? 'done' : 'todo'}`}>
+                <Link to={`/score/universities/${entry.id}`} key={entry.id} className={`stall-row ${isDone ? 'done' : 'todo'}`}>
                   <div className="thumb">{icon}</div>
                   <div className="stall-info">
                     <div className="stall-name">{entry.university?.name}</div>

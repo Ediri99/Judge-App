@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthProvider';
 
 const navGroups = [
@@ -34,11 +35,30 @@ const navGroups = [
 
 export function AdminLayout() {
   const { user, signOut } = useAuth();
+  const location = useLocation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const initials = (user?.email ?? 'A').slice(0, 2).toUpperCase();
+
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="admin-shell">
-      <aside className="admin-rail">
+      <button
+        type="button"
+        className="admin-drawer-toggle"
+        aria-label={drawerOpen ? 'Close navigation menu' : 'Open navigation menu'}
+        aria-expanded={drawerOpen}
+        aria-controls="admin-nav-rail"
+        onClick={() => setDrawerOpen((open) => !open)}
+      >
+        <span aria-hidden="true">☰</span> Menu
+      </button>
+
+      {drawerOpen ? <div className="admin-drawer-overlay" onClick={() => setDrawerOpen(false)} /> : null}
+
+      <aside id="admin-nav-rail" className={`admin-rail${drawerOpen ? ' open' : ''}`}>
         <div className="brand">
           <div className="mark">✦</div>
           <div>

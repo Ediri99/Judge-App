@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'fonts/*.woff2'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Judge App',
         short_name: 'JudgeApp',
@@ -15,6 +15,7 @@ export default defineConfig({
         theme_color: '#F4F0E8',
         background_color: '#F4F0E8',
         display: 'standalone',
+        start_url: '/',
         icons: [
           {
             src: 'pwa-192x192.png',

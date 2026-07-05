@@ -3,6 +3,7 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { MetricCard } from '../../components/MetricCard';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { useAdminCollection } from './useAdminCollection';
 import type { HallDoc, StallCategoryDoc, StallDoc } from '../../types';
 
@@ -49,6 +50,9 @@ export function HallsCategoriesPage() {
         </div>
       </div>
 
+      {halls.error ? <ErrorBanner message={`Couldn't load halls: ${halls.error}`} /> : null}
+      {categories.error ? <ErrorBanner message={`Couldn't load categories: ${categories.error}`} /> : null}
+
       <div className="metrics-row">
         {halls.items.map((hall) => (
           <MetricCard
@@ -75,7 +79,9 @@ export function HallsCategoriesPage() {
                 <td><Button variant="ghost" onClick={() => removeHall(hall)}>Remove</Button></td>
               </tr>
             ))}
-            {halls.items.length === 0 ? (
+            {halls.loading ? (
+              <tr><td colSpan={2}>Loading halls…</td></tr>
+            ) : halls.items.length === 0 ? (
               <tr><td colSpan={2}>No halls yet.</td></tr>
             ) : null}
           </tbody>
@@ -101,7 +107,9 @@ export function HallsCategoriesPage() {
                 <td><Button variant="ghost" onClick={() => removeCategory(category)}>Remove</Button></td>
               </tr>
             ))}
-            {categories.items.length === 0 ? (
+            {categories.loading ? (
+              <tr><td colSpan={2}>Loading categories…</td></tr>
+            ) : categories.items.length === 0 ? (
               <tr><td colSpan={2}>No categories yet.</td></tr>
             ) : null}
           </tbody>

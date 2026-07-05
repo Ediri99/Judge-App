@@ -7,9 +7,32 @@ import type { ScoreDoc, ScorePhotoDoc } from '../types';
 
 const PING_URL = 'https://www.gstatic.com/generate_204';
 const PING_INTERVAL = 4000;
-const STABLE_THRESHOLD = 2;
-const UNSTABLE_THRESHOLD = 2;
+export const STABLE_THRESHOLD = 2;
+export const UNSTABLE_THRESHOLD = 2;
 const SYNC_WINDOW_MS = 20000;
+
+export interface ConnectivityState {
+  stable: boolean;
+  goodPings: number;
+  badPings: number;
+}
+
+/**
+ * Pure hysteresis step: ~2 consecutive good pings to go stable, ~2 consecutive
+ * bad pings to drop back to unstable. Kept pure/exported so the "never syncs
+ * during a flapping signal" rule can be unit-tested without a real network.
+ */
+export function nextConnectivityState(state: ConnectivityState, online: boolean): ConnectivityState {
+  if (online) {
+    const goodPings = state.goodPings + 1;
+    const stable = state.stable || goodPings >= STABLE_THRESHOLD;
+    return { stable, goodPings, badPings: 0 };
+  }
+
+  const badPings = state.badPings + 1;
+  const stable = state.stable && badPings < UNSTABLE_THRESHOLD;
+  return { stable, goodPings: 0, badPings };
+}
 
 let pingTimer: number | undefined;
 let syncTimer: number | undefined;
@@ -73,25 +96,21 @@ function scheduleSyncWindow() {
 }
 
 async function handleConnectivity(online: boolean) {
-  if (online) {
-    badPings = 0;
-    goodPings += 1;
-    if (!stable && goodPings >= STABLE_THRESHOLD) {
-      stable = true;
-      scheduleSyncWindow();
+  const wasStable = stable;
+  const next = nextConnectivityState({ stable, goodPings, badPings }, online);
+  stable = next.stable;
+  goodPings = next.goodPings;
+  badPings = next.badPings;
+
+  if (!wasStable && stable) {
+    scheduleSyncWindow();
+  } else if (wasStable && !stable) {
+    if (syncTimer) {
+      window.clearTimeout(syncTimer);
+      syncTimer = undefined;
     }
-  } else {
-    goodPings = 0;
-    badPings += 1;
-    if (stable && badPings >= UNSTABLE_THRESHOLD) {
-      stable = false;
-      if (syncTimer) {
-        window.clearTimeout(syncTimer);
-        syncTimer = undefined;
-      }
-      if (networkEnabled) {
-        await safeDisableNetwork();
-      }
+    if (networkEnabled) {
+      await safeDisableNetwork();
     }
   }
 }
