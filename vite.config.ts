@@ -30,7 +30,22 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globIgnores: ['**/vendor-export-*.js'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Excel/PDF export libraries are admin-only and not part of the
+          // offline judge app shell — keep them out of the precached bundle.
+          if (id.includes('node_modules/xlsx') || id.includes('node_modules/pdfmake')) {
+            return 'vendor-export';
+          }
+        },
+      },
+    },
+  },
 });

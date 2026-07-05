@@ -17,7 +17,6 @@ import { StallScorePage } from './stalls/StallScorePage';
 import { UniversitiesListPage } from './universities/UniversitiesListPage';
 import { UniversityScorePage } from './universities/UniversityScorePage';
 import { AdminLayout } from './admin/AdminLayout';
-import { ComingSoonPage } from './admin/ComingSoonPage';
 import { HallsCategoriesPage } from './admin/HallsCategoriesPage';
 import { CriteriaPage } from './admin/CriteriaPage';
 import { StallsPage } from './admin/StallsPage';
@@ -26,6 +25,10 @@ import { UniversitiesPage } from './admin/UniversitiesPage';
 import { AwardCategoriesPage } from './admin/AwardCategoriesPage';
 import { EntriesPage } from './admin/EntriesPage';
 import { EventSettingsPage } from './admin/EventSettingsPage';
+import { StallResultsPage } from './admin/StallResultsPage';
+import { UniversityResultsPage } from './admin/UniversityResultsPage';
+import { WinnersPage } from './admin/WinnersPage';
+import { ExportOverviewPage } from './admin/ExportOverviewPage';
 import '../styles/shell.css';
 
 function JudgeShell() {
@@ -140,19 +143,19 @@ function AppRoutes() {
       <Route element={<ProtectedRoute roles={['admin']} />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/stalls/results" replace />} />
-          <Route path="stalls/results" element={<ComingSoonPage title="Stall results" note="Live leaderboard arrives in Phase 7." />} />
+          <Route path="stalls/results" element={<StallResultsPage />} />
           <Route path="stalls/stalls" element={<StallsPage />} />
           <Route path="stalls/criteria" element={<CriteriaPage track="stalls" />} />
           <Route path="stalls/judges" element={<JudgesPage />} />
           <Route path="stalls/halls" element={<HallsCategoriesPage />} />
-          <Route path="universities/results" element={<ComingSoonPage title="University results" note="Per-category leaderboards arrive in Phase 7." />} />
-          <Route path="universities/winners" element={<ComingSoonPage title="Winners" note="The 6 award winners arrive in Phase 7." />} />
+          <Route path="universities/results" element={<UniversityResultsPage />} />
+          <Route path="universities/winners" element={<WinnersPage />} />
           <Route path="universities/entries" element={<EntriesPage />} />
           <Route path="universities/universities" element={<UniversitiesPage />} />
           <Route path="universities/award-categories" element={<AwardCategoriesPage />} />
           <Route path="universities/criteria" element={<CriteriaPage track="universities" />} />
           <Route path="event/settings" element={<EventSettingsPage />} />
-          <Route path="event/export" element={<ComingSoonPage title="Export" note="Excel and PDF exports arrive in Phase 7." />} />
+          <Route path="event/export" element={<ExportOverviewPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/judge" replace />} />
