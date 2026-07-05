@@ -636,12 +636,17 @@ input:focus, select:focus, textarea:focus {
 }
 
 .nav-item {
+  display: block;
   border: none;
   padding: 10px 12px;
   border-radius: 10px;
   background: transparent;
   text-align: left;
+  text-decoration: none;
   color: var(--ink-soft);
+  cursor: pointer;
+  font: inherit;
+  width: 100%;
 }
 
 .nav-item.on {

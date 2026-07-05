@@ -58,6 +58,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /judges/{judgeId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     match /scores/{scoreId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.judgeId == request.auth.uid;

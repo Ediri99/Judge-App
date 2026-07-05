@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 type Props = {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
 };
 
-export function Card({ children, className = '' }: Props) {
-  return <div className={`card ${className}`.trim()}>{children}</div>;
+export function Card({ children, className = '', style }: Props) {
+  return <div className={`card ${className}`.trim()} style={style}>{children}</div>;
 }

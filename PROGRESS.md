@@ -51,3 +51,21 @@
 - Photos are compressed client-side before being queued and uploaded to Cloud Storage during stable connectivity windows.
 - The judge list and scoring screens now show sync-state badges for Saved on device, Queued, Uploading, Synced, and Retry.
 - Score writes remain local-first and continue to work even when photo uploads are pending.
+
+## Phase 6
+- Replaced the static admin shell with a real `AdminLayout` (sidebar grouped into Stalls / Universities / Event, admin-only via the existing `ProtectedRoute`) and nested routes under `/admin/...`.
+- Built setup CRUD backed by live Firestore listeners (`useAdminCollection` hook): Halls & categories, Criteria (stall set + university product/process sets, with name/max/weight edit and up/down reordering), Stalls (grid + add/edit form + image upload to Cloud Storage), Universities, Award categories (name/type/order), Entries (university × award category + image upload).
+- Judges screen shows Email + Progress only (no code/PIN/assigned), matches the confirmed model. "Add judge" creates a real Firebase Auth user via a secondary Firebase app instance (`getSecondaryAuth` in `src/lib/firebase.ts`) so the admin's own session isn't replaced, then writes `users/{uid}` (role) and `judges/{uid}` (profile) docs. Progress is submitted-score count across both tracks ÷ total items.
+- Added an Event settings screen (name/year) and stubbed Results / Winners / Export panels with a "built in a later phase" placeholder, since results/exports are Phase 7 scope.
+- Added a `judges` collection rule to `firestore.rules` (admin write, signed-in read) to support the new screen.
+- `npm run build` passes.
+
+## Decisions
+- Criteria reordering uses simple up/down buttons that swap `order` values rather than a drag-and-drop library, to avoid a new dependency — satisfies "wire up real reordering" without adding drag/drop machinery.
+- Judges CRUD only manages the `judges`/`users` collections directly (not through the generic `useAdminCollection` add path) because account creation needs the secondary-auth-app dance; every other setup screen reuses the shared hook.
+- Results, Winners, and Export navigation items are present (per the confirmed nav structure in ADMIN §4) but render a placeholder — real leaderboard math and file generation are explicitly Phase 7.
+
+## Follow-ups / open questions
+- `firestore.rules` still checks `users/{uid}.data.role == 'admin'` (singular) while `AuthProvider` stores `roles` (an array) — this predates Phase 6 and should be reconciled before rules are enforced against a real project, or admin-gated writes will fail.
+- Confirm whether "Progress" on the Judges screen should be per-track or combined (ADMIN §13 open question) — currently combined across stalls + entries.
+- Confirm whether every university should be auto-listed per award category or only actual entrants (ADMIN §13) — Entries are currently added one at a time with no auto-generation.

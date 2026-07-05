@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -19,3 +19,11 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const appConfig = firebaseConfig;
+
+// Secondary app instance used to create judge Auth accounts from the admin
+// screen without swapping out the signed-in admin's session.
+export function getSecondaryAuth() {
+  const existing = getApps().find((instance) => instance.name === 'judge-creation');
+  const secondaryApp = existing ?? initializeApp(firebaseConfig, 'judge-creation');
+  return getAuth(secondaryApp);
+}
